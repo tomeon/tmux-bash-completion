@@ -2,25 +2,25 @@
 
 _tmux () {
 
-	local cur="${COMP_WORDS[COMP_CWORD]}"
-	local prev="${COMP_WORDS[COMP_CWORD-1]}"
-	local flags='2Cc:f:L:lS:uvV'
+    local cur="${COMP_WORDS[COMP_CWORD]}"
+    local prev="${COMP_WORDS[COMP_CWORD-1]}"
+    local flags='2Cc:f:L:lS:uvV'
 
-	# Scan existing argument list for non-flag options
-	if (( COMP_CWORD > 0 )); then
-		local cmd=''
-		local -i comp_iword=1
-		local maybe_cmd="${COMP_WORDS[comp_iword]}"
+    # Scan existing argument list for non-flag options
+    if (( COMP_CWORD > 0 )); then
+        local cmd=''
+        local -i comp_iword=1
+        local maybe_cmd="${COMP_WORDS[comp_iword]}"
 
-		while (( comp_iword < COMP_CWORD )); do
-			if [[ "$maybe_cmd" != *- ]]; then
-				cmd="$maybe_cmd"
-				break
-			fi
-			((comp_iword++))
-			maybe_cmd="${COMP_WORDS[comp_iword]}"
-		done
-	fi
+        while (( comp_iword < COMP_CWORD )); do
+            if [[ "$maybe_cmd" != *- ]]; then
+                cmd="$maybe_cmd"
+                break
+            fi
+            ((comp_iword++))
+            maybe_cmd="${COMP_WORDS[comp_iword]}"
+        done
+    fi
 
     _tmux::lscm () {
         local wanted_cmd="$1"
@@ -96,31 +96,31 @@ _tmux () {
         return 0
     }
 
-	# If we haven't seen a command yet, provide completion based only on
-	# commands and flags to tmux itself.
-	if [[ -z "$cmd" ]]; then
-		COMPREPLY=($(compgen -W "$(_tmux::lscm)" -- "${cur}"))
-	else
-		local -a optv
-		optv=($(_tmux::lscm "$cmd"))
+    # If we haven't seen a command yet, provide completion based only on
+    # commands and flags to tmux itself.
+    if [[ -z "$cmd" ]]; then
+        COMPREPLY=($(compgen -W "$(_tmux::lscm)" -- "${cur}"))
+    else
+        local -a optv
+        optv=($(_tmux::lscm "$cmd"))
 
-		if [[ "$prev" == -* ]]; then
-			local flag trimmed
-			for flag in "${optv[@]}"; do
-				trimmed="${flag%:}"
-				if [[ "$prev" == "$trimmed" ]] && (( ${#trimmed} < ${#flag} )); then
-					return 1
-				fi
-			done
-		fi
+        if [[ "$prev" == -* ]]; then
+            local flag trimmed
+            for flag in "${optv[@]}"; do
+                trimmed="${flag%:}"
+                if [[ "$prev" == "$trimmed" ]] && (( ${#trimmed} < ${#flag} )); then
+                    return 1
+                fi
+            done
+        fi
 
-		COMPREPLY=($(compgen -W "${optv[*]//:/}" -- "${cur}"))
-	fi
+        COMPREPLY=($(compgen -W "${optv[*]//:/}" -- "${cur}"))
+    fi
 
     # Minimize environment pollution.
     unset -f _tmux::lscm
 
-	return 0
+    return 0
 }
 
 complete -F _tmux tmux
