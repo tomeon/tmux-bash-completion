@@ -45,6 +45,10 @@ _tmux () {
             if [[ -z "${wanted_cmd:-}" ]]; then
                 echo "$cmd" "$alias"
                 continue
+            # If a command was specified and it does not match the current
+            # command, skip to the next iteration
+            elif [[ "${wanted_cmd:-}" != "$cmd" ]]; then
+                continue
             fi
 
             # Now process any flags
@@ -84,13 +88,8 @@ _tmux () {
                 fi
             done
 
-            # If a command was specified and it matches the current command, echo
-            # the flags corresponding to that command and break out of the loop
-            if [[ "${wanted_cmd:-}" == "$cmd" ]]; then
-                echo "${optv[@]}"
-                break
-            fi
-            unset optv
+            echo "${optv[@]}"
+            break
         done < <(command tmux lscm)
 
         return 0
