@@ -1,26 +1,9 @@
 #!/usr/bin/env bash
 
 _tmux () {
-
     local cur="${COMP_WORDS[COMP_CWORD]}"
     local prev="${COMP_WORDS[COMP_CWORD-1]}"
     local flags='2Cc:f:L:lS:uvV'
-
-    # Scan existing argument list for non-flag options
-    if (( COMP_CWORD > 0 )); then
-        local cmd=''
-        local -i comp_iword=1
-        local maybe_cmd="${COMP_WORDS[comp_iword]}"
-
-        while (( comp_iword < COMP_CWORD )); do
-            if [[ "$maybe_cmd" != *- ]]; then
-                cmd="$maybe_cmd"
-                break
-            fi
-            ((comp_iword++))
-            maybe_cmd="${COMP_WORDS[comp_iword]}"
-        done
-    fi
 
     _tmux::lscm () {
         local wanted_cmd="$1"
@@ -94,6 +77,22 @@ _tmux () {
 
         return 0
     }
+
+    # Scan existing argument list for non-flag options
+    if (( COMP_CWORD > 0 )); then
+        local cmd=''
+        local -i comp_iword=1
+        local maybe_cmd="${COMP_WORDS[comp_iword]}"
+
+        while (( comp_iword < COMP_CWORD )); do
+            if [[ "$maybe_cmd" != *- ]]; then
+                cmd="$maybe_cmd"
+                break
+            fi
+            ((comp_iword++))
+            maybe_cmd="${COMP_WORDS[comp_iword]}"
+        done
+    fi
 
     # If we haven't seen a command yet, provide completion based only on
     # commands and flags to tmux itself.
