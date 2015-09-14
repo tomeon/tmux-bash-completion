@@ -34,14 +34,15 @@ _tmux () {
                 shift
             fi
 
-            # If no command is sought, echo the command and its alias and return
-            # without processing the command's options
-            if [[ -z "${wanted_cmd:-}" ]]; then
+            # If no command is sought, echo the command and its alias and
+            # return without processing the command's options
+            if [[ -z $wanted_cmd ]]; then
                 echo "$cmd" "$alias"
                 continue
             # If a command was specified and it does not match the current
             # command, skip to the next iteration
-            elif [[ "${wanted_cmd:-}" != "$cmd" ]]; then
+            elif [[ "$wanted_cmd" != "$cmd" ]] \
+              && [[ "$wanted_cmd" != "$alias" ]]; then
                 continue
             fi
 
@@ -49,14 +50,15 @@ _tmux () {
             local optv opt
             while (( $# )); do
                 opt="$1"
-                # All options are surrounded with square brackets and begin with a
-                # single dash
+                # All options are surrounded with square brackets and begin
+                # with a single dash
                 if [[ "$opt" != '[-'* ]]; then
                     shift
-                # If $opt doesn't end with a square bracket, it takes an argument
+                # If $opt doesn't end with a square bracket, it takes an
+                # argument
                 elif [[ "$opt" != *']' ]]; then
-                    # Trim the opening bracket and append a colon to indicate that
-                    # this option takes an argument
+                    # Trim the opening bracket and append a colon to indicate
+                    # that this option takes an argument
                     optv+=("${opt#[}:")
 
                     # Remove both the option and the argument from $@
@@ -89,6 +91,8 @@ _tmux () {
         return 0
     }
 
+    # If a flag ends with ':', the user must provide an argument.  Signal that
+    # no completion should occur by returning 1.
     _tmux::check_flags () {
         local prev="$1"
         shift
@@ -141,7 +145,7 @@ _tmux () {
         COMPREPLY=($(compgen -W "${optv[*]//:/}" -- "${cur}"))
     fi
 
-    # Minimize environment pollution.
+    # Minimize environment pollution
     unset -f _tmux::lscm _tmux::check_flags
 
     return 0
