@@ -4,6 +4,13 @@ _tmux () {
     local cur="${COMP_WORDS[COMP_CWORD]}"
     local prev="${COMP_WORDS[COMP_CWORD-1]}"
 
+    local -a return_trap=()
+    read -r -a _ _ return_trap < <(builtin trap -p return)
+
+    # Get rid of trailing signal name
+    return_trap=("${return_trap[@]:0:$(( ${#return_trap[@]} - 2 ))}")
+    trap "${return_trap[@]:-:}; unset -f _tmux::lscm _tmux::check_flags &>/dev/null; trap '${return_trap[@]:--}' return" return
+
     local -a tmux_flags=(
         -2
         -C
@@ -65,9 +72,8 @@ _tmux () {
                     # Remove both the option and the argument from $@
                     shift 2
                 else
-                    # Remove opening all bracket, as well as all dashes.  Safe
-                    # because all tmux options are single letters (i.e., no
-                    # --long-options)
+                    # Remove opening bracket and all dashes.  Safe because all
+                    # tmux options are single letters (i.e., no --long-options)
                     opt="${opt#[}"
                     opt="${opt//-/}"
 
@@ -76,7 +82,7 @@ _tmux () {
 
                     # Process each character separately
                     local flag
-                    while read -n 1 flag; do
+                    while read -r -n 1 flag; do
                         [[ -z "$flag" ]] && continue
                         optv+=("-$flag")
                     done <<<"${opt%]}"
@@ -88,6 +94,8 @@ _tmux () {
             echo "${optv[@]}"
             break
         done < <(command tmux lscm)
+
+        unset -f "${FUNCNAME[0]}"
 
         return 0
     }
@@ -107,6 +115,8 @@ _tmux () {
                 fi
             done
         fi
+
+        unset -f "${FUNCNAME[0]}"
 
         return 0
     }
@@ -145,9 +155,6 @@ _tmux () {
 
         COMPREPLY=($(compgen -W "${optv[*]//:/}" -- "${cur}"))
     fi
-
-    # Minimize environment pollution
-    unset -f _tmux::lscm _tmux::check_flags
 
     return 0
 }
